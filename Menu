@@ -1,4 +1,5 @@
 import pygame
+import EventHandler
 
 class Window:
     """
@@ -111,7 +112,8 @@ class Window:
 
 class WindowContainer:
 
-    def __init__(self, intMarginSize=20, parent=None, lstMenus=(), intPadding=10):
+    def __init__(self,eventhandler=EventHandler.EventHandler, intMarginSize=20, parent=None, lstMenus=[], intPadding=10):
+        self.objEventHandler = eventhandler  # EventHandler.EventHandler
         self.intMarginSize  = intMarginSize
         self.intPadding     = intPadding
 
@@ -136,7 +138,7 @@ class WindowContainer:
     def CreateNewSubWindow(self, lstMenus, offset=(0,0)):
         if self.control:
             # self.lstSubWindows.append(WindowContainer(addedtext))
-            self.SubWindow = (offset, WindowContainer(lstMenus=lstMenus, parent=self, intPadding=self.intPadding))
+            self.SubWindow = (offset, WindowContainer(self.objEventHandler, lstMenus=lstMenus, parent=self, intPadding=self.intPadding))
             self.control = False
         else:
             # self.lstSubWindows[self.control].CreateNewSubWindow(addedtext)
@@ -201,83 +203,101 @@ class WindowContainer:
                         self.CreateNewSubWindow(self.lstMenus[self.idxCursor][1],
                                                 offset=(offsetX,offsetY))
                     else:
+                        objFiredEvent = str(self.lstMenus[self.idxCursor][2])
+                        self.objEventHandler.RaiseEvent(objFiredEvent)
                         print("Event Fired: " + str(self.lstMenus[self.idxCursor][2])
                               + " - " + self.lstMenus[self.idxCursor][0])
 
-"""initialize variables"""
-pygame.init()
-objScreen = pygame.display.set_mode((640, 640))
-test = Window(tplSize=(640, 640), tplFillColor=(128, 128, 128))
 
+if __name__ == "__main__":
 
-lstTestList =   [
-                    ["Attack", [], 101]
-                    ,["Magic",
-                        [
-                            ["Black Magic",
-                                [
-                                    ["put Some Other Stuff Here", [],201]
-                                ], 0
-                            ],
-                            ["White Magic",
-                                [
-                                    ["Cure", [], 202],
-                                    ["Esuna",[], 203],
-                                    ["Flare",[], 204]
-                                ], 0
-                            ],
-                            ["Alex Magic",
-                                [
-                                    ["The Best Magic Goes Here", [], 205]
-                                ], 0
-                            ]
-                        ], 0
+    class TESTCLASS:
+
+        def __init__(self, eventhandler):
+            self.eventhandler = eventhandler
+            self.eventhandler.EventListener('101', self.testFunction)
+        def testFunction(self, event):
+            print("Attack Event Recieved - Event Details: " + str(event))
+
+    """initialize variables"""
+    pygame.init()
+    objScreen = pygame.display.set_mode((640, 640))
+    test = Window(tplSize=(640, 640), tplFillColor=(128, 128, 128))
+
+    # TODO - make a function or class that will generates menu items easier
+    # that will be needed to populate this data on the fly
+    lstTestList =   [
+                        ["Attack", [], 101]
+                        ,["Magic",
+                            [
+                                ["Black Magic",
+                                    [
+                                        ["put Some Other Stuff Here", [],201]
+                                    ], 0
+                                ],
+                                ["White Magic",
+                                    [
+                                        ["Cure", [], 202],
+                                        ["Esuna",[], 203],
+                                        ["Flare",[], 204]
+                                    ], 0
+                                ],
+                                ["Alex Magic",
+                                    [
+                                        ["The Best Magic Goes Here", [], 205]
+                                    ], 0
+                                ]
+                            ], 0
+                        ]
+                        ,["Items", [], 301]
+                        ,["Flee", [], 404] #NOT FOUND XD
                     ]
-                    ,["Items", [], 301]
-                    ,["Flee", [], 404] #NOT FOUND XD
-                ]
 
-testwindow = WindowContainer(lstMenus=lstTestList)
-
-keyspressed = []
-blRunning = True
-
-while blRunning:
-    # boilerplate input handling
-    for event in pygame.event.get():
-        """
-        returns a list of events. This will clear the event list each time 
-        so all event get objects should typically be handled here
-        """
-        if event.type == pygame.QUIT:
-            blRunning = False
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                blRunning = False
-            if event.key == pygame.K_UP:
-                keyspressed.append("K_UP")
-
-            if event.key == pygame.K_DOWN:
-                keyspressed.append("K_DOWN")
-
-            if event.key == pygame.K_LEFT:
-                keyspressed.append("K_LEFT")
-
-            if event.key == pygame.K_RIGHT:
-                keyspressed.append("K_RIGHT")
-
-            if event.key == pygame.K_RETURN:
-                keyspressed.append("K_RETURN")
-
-            if event.key == pygame.K_SPACE:
-                keyspressed.append("K_SPACE")
-    if len(keyspressed) > 0:
-        testwindow.HandleInput(keyspressed)
-    drawlist = testwindow.CreateDrawList()
-    objScreen.blit(test.objScreen, (0, 0))
-    for screen in drawlist[::-1]:
-        objScreen.blit(screen[0], screen[1])
-    pygame.display.flip()
+    objEventHandler = EventHandler.EventHandler()
+    testwindow = WindowContainer(objEventHandler, lstMenus=lstTestList)
+    objEventHandlingTest = TESTCLASS(objEventHandler)
     keyspressed = []
+    blRunning = True
 
-pygame.quit()
+    while blRunning:
+        # boilerplate input handling
+        for event in pygame.event.get():
+            """
+            returns a list of events. This will clear the event list each time 
+            so all event get objects should typically be handled here
+            """
+            if event.type == pygame.QUIT:
+                blRunning = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    blRunning = False
+                if event.key == pygame.K_UP:
+                    keyspressed.append("K_UP")
+
+                if event.key == pygame.K_DOWN:
+                    keyspressed.append("K_DOWN")
+
+                if event.key == pygame.K_LEFT:
+                    keyspressed.append("K_LEFT")
+
+                if event.key == pygame.K_RIGHT:
+                    keyspressed.append("K_RIGHT")
+
+                if event.key == pygame.K_RETURN:
+                    keyspressed.append("K_RETURN")
+
+                if event.key == pygame.K_SPACE:
+                    keyspressed.append("K_SPACE")
+        #handle keys pressed
+        if len(keyspressed) > 0:
+            testwindow.HandleInput(keyspressed)
+        #handle events
+        objEventHandler.HandleEvents()
+        drawlist = testwindow.CreateDrawList()
+        objScreen.blit(test.objScreen, (0, 0))
+        for screen in drawlist[::-1]:
+            objScreen.blit(screen[0], screen[1])
+        pygame.display.flip()
+        keyspressed = []
+
+    pygame.quit()
