@@ -38,20 +38,29 @@ class EventHandler:
             # Add to handler list
             self.htblSubscriptions[hash(eventName)][1].append(handler)
 
-    def RaiseEvent(self, eventName, event=None):
-        self.lstEvents.append((eventName, event))
+    def RaiseEvent(self, event):
+        # self.lstEvents.append((eventName, event))
+        self.HandleEvent(event)
 
-    def HandleEvents(self):
-        for currentEvent in self.lstEvents:
-            if hash(currentEvent[0]) in self.htblSubscriptions:  # look to see if this is handled
+    def HandleEvent(self, event):
+            if hash(event.strName) in self.htblSubscriptions:  # look to see if this is handled
                 # if there are handlers, pass each one the event
                 # [eventName, [handler]] - this is the values int eh hash table - get the list of handlers
-                for handler in self.htblSubscriptions[hash(currentEvent[0])][1]:
+                for handler in self.htblSubscriptions[hash(event.strName)][1]:
                     # event structure is ((EventName, event))
-                    handler(currentEvent[1])
-        # prevent handling the same event multiple times
-        self.lstEvents = []
+                    handler(event.EventObject)
 
+
+class Event:
+    """
+    Event class being raised to the event handler
+    This should pass along information about the event raised
+    !!!Work in progress!!!
+    """
+
+    def __init__(self, strEventName, objEvent=None):
+        self.strName = strEventName
+        self.EventObject = objEvent
 
 if __name__ == "__main__":
     """Test scripts here"""
@@ -59,12 +68,12 @@ if __name__ == "__main__":
         def __init__(self):
             objEventHandler.EventListener("testEvent", self.testFunction2)
 
-        def testFunction2(self, events):
+        def testFunction2(self, event):
             print("this class handled this event without code specifying it should")
 
 
     objEventHandler = EventHandler()
     objTestclass = TESTCLASS()
-    objEventHandler.RaiseEvent("testEvent")
-    objEventHandler.HandleEvents()
+    objEventHandler.RaiseEvent(Event("testEvent"))
+    # objEventHandler.HandleEvents()
 

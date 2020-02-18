@@ -204,9 +204,22 @@ class WindowContainer:
                                                 offset=(offsetX,offsetY))
                     else:
                         objFiredEvent = str(self.lstMenus[self.idxCursor][2])
-                        self.objEventHandler.RaiseEvent(objFiredEvent)
+                        objFiredEventDetails = str(self.lstMenus[self.idxCursor][3])
+                        # line below is for debugging
                         print("Event Fired: " + str(self.lstMenus[self.idxCursor][2])
                               + " - " + self.lstMenus[self.idxCursor][0])
+                        self.objEventHandler.RaiseEvent(EventHandler.Event(objFiredEvent, objFiredEventDetails))
+
+
+class MenuItem:
+    """
+    MenuItem class will be used to hold a selectable option in a text window
+    """
+    def __init__(self, strText, lstSubMenuItems=[], blAction=False, objEvent=None):
+        self.strOptionText      = strText # string for displayed output
+        self.lstSubMenuItems    = lstSubMenuItems # this will be a list of menuitems
+        self.blAction           = blAction # indicator if this line is an action
+        self.objEvent           = objEvent # this will be an event object with information about the event being triggered
 
 
 if __name__ == "__main__":
@@ -215,9 +228,16 @@ if __name__ == "__main__":
 
         def __init__(self, eventhandler):
             self.eventhandler = eventhandler
-            self.eventhandler.EventListener('101', self.testFunction)
+            self.eventhandler.EventListener("Attack", self.testFunction)
+            self.eventhandler.EventListener("Black Magic", self.black_magic)
+            self.eventhandler.EventListener("White Magic", self.white_magic)
+
         def testFunction(self, event):
             print("Attack Event Recieved - Event Details: " + str(event))
+        def black_magic(self, event):
+            print("Black Magic Event Recieved - Event Details: " + str(event))
+        def white_magic(self, event):
+            print("White Magic Event Recieved - Event Details: " + str(event))
 
     """initialize variables"""
     pygame.init()
@@ -227,30 +247,30 @@ if __name__ == "__main__":
     # TODO - make a function or class that will generates menu items easier
     # that will be needed to populate this data on the fly
     lstTestList =   [
-                        ["Attack", [], 101]
+                        ["Attack", [], "Attack", 101]
                         ,["Magic",
                             [
                                 ["Black Magic",
                                     [
-                                        ["put Some Other Stuff Here", [],201]
+                                        ["Flare", [],"Black Magic", 201]
                                     ], 0
                                 ],
                                 ["White Magic",
                                     [
-                                        ["Cure", [], 202],
-                                        ["Esuna",[], 203],
-                                        ["Flare",[], 204]
+                                        ["Cure", [], "White Magic", 301],
+                                        ["Esuna",[], "White Magic", 302],
+                                        ["Holy",[], "White Magic", 303]
                                     ], 0
                                 ],
                                 ["Alex Magic",
                                     [
-                                        ["The Best Magic Goes Here", [], 205]
+                                        ["The Best Magic Goes Here", [], 205, 205]
                                     ], 0
                                 ]
                             ], 0
                         ]
-                        ,["Items", [], 301]
-                        ,["Flee", [], 404] #NOT FOUND XD
+                        ,["Items", [], 301, 205]
+                        ,["Flee", [], 404, 205] #NOT FOUND XD
                     ]
 
     objEventHandler = EventHandler.EventHandler()
@@ -292,7 +312,7 @@ if __name__ == "__main__":
         if len(keyspressed) > 0:
             testwindow.HandleInput(keyspressed)
         #handle events
-        objEventHandler.HandleEvents()
+        #objEventHandler.HandleEvents()
         drawlist = testwindow.CreateDrawList()
         objScreen.blit(test.objScreen, (0, 0))
         for screen in drawlist[::-1]:
